@@ -1,19 +1,23 @@
 ---
-title: "assignment2"
+title: "Assignment 2"
+author: "Shuofan Zhang 27886913"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
 
-#Part 1
 ## Question 1
+
 $c_t$ is the logarithm of the per-capital consumption expenditure, $i_t$ is the logarithm of the per-capital disposable income, $p_t$ is the logarithm of GDP, $r_t$ is the real interest rate.
 
-```{r data, include=FALSE}
+All numbers are rounded to four decimal places.
 
+```{r data, include=FALSE}
+setwd("/Users/stanza/documents/github/etf5200-time-series")
 library(tidyverse)
-library(xlsx)
-data <- read.xlsx("C:/Users/SOE-US-AVCLocalUser/Desktop/newdata.xlsx", sheetIndex=1, startRow=10, endRow = 261, header = FALSE)
+library(readxl)
+data <- read_excel("newdata.xlsx", sheet=1, range=cell_rows(9:261),  na="n/a")
 
 names(data)<-c("year","season", "i_t","c_t","r_t","g_t")
 ct <- log(data$c_t)
@@ -32,11 +36,15 @@ model <- function(x){
   dt <- tibble(diff, t, lag)
   mm <- lm( diff ~ t + lag ,data = dt)
   sigma <- sigma(mm)
-  variance <- sigma^2
-  alpha <- mm$coefficients[1]
-  beta <- mm$coefficients[2]
-  gamma <- mm$coefficients[3]
-  return(tibble(variance,alpha,beta,gamma))
+  variance <- format(round(sigma^2, digits = 4), scientific = FALSE)
+  alpha <- format(round(mm$coefficients[1], digits = 4), scientific=FALSE)
+  beta <- format(round(mm$coefficients[2], digits = 4), scientific=FALSE)
+  gamma <- format(round(mm$coefficients[3], digits = 4), scientific=FALSE)
+  ss <- summary(mm)
+  p_alpha <- paste0("(", format(round(ss$coefficients[,4][1],digits=4), scientific=FALSE), ")")
+  p_beta <- paste0("(", format(round(ss$coefficients[,4][2],digits=4), scientific=FALSE), ")")
+  p_gamma <- paste0("(", format(round(ss$coefficients[,4][3],digits=4), scientific=FALSE), ")")
+  tibble(variance,alpha,beta,gamma) %>% rbind(c(" ", p_alpha, p_beta, p_gamma)) %>% return()
 }
 
 ```
@@ -47,16 +55,17 @@ ctm <- model(ct)
 itm <- model(it)
 ptm <- model(pt)
 rtm <- model(rt)
-series <- c("ct", "it", "pt", "rt")
+series <- c("ct", "p.value", "it", "p.value", "pt", "p.value", "rt", "p.value")
 mtable <- rbind(ctm, itm, ptm, rtm)
-cbind(series, mtable)
-
+mtable <- cbind(series, mtable)
+kable(mtable, align = "l", caption = "OLS estimates for each series")
 ```
+
 
 
 ##Question 2
 
-```{r test, echo=FALSE, warning=FALSE}
+```{r functions, echo=FALSE, warning=FALSE}
 
 library(ggfortify)
 library(tseries)
@@ -134,29 +143,30 @@ kpss <- tibble(kpss_con, kpss_p)
 ttable <- cbind(adf, pp, kpss) 
 return(ttable)
 }
+```
 
-autoplot(tsdata[,1], xlab = "time", ylab = "ct")
-autoplot(tsdata[,2], xlab = "time", ylab = "it")
-autoplot(tsdata[,3], xlab = "time", ylab = "pt")
-autoplot(tsdata[,4], xlab = "time", ylab = "rt")
+```{r ctplot, echo=FALSE, fig.cap="Time plot of four series", message=FALSE, warning=FALSE}
+library(gridExtra)
+ctp <- autoplot(tsdata[,1], xlab = "time", ylab = "ct")
+itp <- autoplot(tsdata[,2], xlab = "time", ylab = "it")
+ptp <- autoplot(tsdata[,3], xlab = "time", ylab = "pt")
+rtp <- autoplot(tsdata[,4], xlab = "time", ylab = "rt")
+grid.arrange(ctp, itp, ptp, rtp, ncol=2)
+```
 
+
+```{r tests, echo=FALSE, warning=TRUE}
 ctt <- trend_test(ct)
 itt <- trend_test(it)
 ptt <- trend_test(pt)
 rtt <- stationary_test(rt)
 
 ttable <- rbind(c("conclusion", "p.value", "conclusion", "p.value", "conclusion","p.value"), ctt, itt, ptt, rtt)
+series <- c("ct", "it","pt", "rt")
 ttable <- cbind(c("", series), ttable)
-kable(ttable, align = "l", col.names = c("", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests")
-
+kable(ttable, align = "l", col.names = c(" ", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests")
 
 ```
-
-Where "adf_p" means p-values provided by ADF test, "adf_con" means 
-
-
-
-
 
 
 
