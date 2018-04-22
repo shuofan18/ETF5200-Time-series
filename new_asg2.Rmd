@@ -1,0 +1,176 @@
+---
+title: "assignment2"
+output:
+  html_document:
+    df_print: paged
+---
+
+#Part 1
+## Question 1
+$c_t$ is the logarithm of the per-capital consumption expenditure, $i_t$ is the logarithm of the per-capital disposable income, $p_t$ is the logarithm of GDP, $r_t$ is the real interest rate.
+
+```{r data, include=FALSE}
+
+library(tidyverse)
+library(xlsx)
+data <- read.xlsx("C:/Users/SOE-US-AVCLocalUser/Desktop/newdata.xlsx", sheetIndex=1, startRow=10, endRow = 261, header = FALSE)
+
+names(data)<-c("year","season", "i_t","c_t","r_t","g_t")
+ct <- log(data$c_t)
+it <- data$i_t
+it <- log(it)
+pt <- log(data$g_t)
+rt <- data$r_t %>% as.character() %>% as.numeric()
+
+
+model <- function(x){
+  x <- na.omit(x)
+  lag <- lag(x)
+  lag <- lag[-1]
+  t <- c(1:length(lag))
+  diff <- diff(x)
+  dt <- tibble(diff, t, lag)
+  mm <- lm( diff ~ t + lag ,data = dt)
+  sigma <- sigma(mm)
+  variance <- sigma^2
+  alpha <- mm$coefficients[1]
+  beta <- mm$coefficients[2]
+  gamma <- mm$coefficients[3]
+  return(tibble(variance,alpha,beta,gamma))
+}
+
+```
+
+```{r model, echo=FALSE}
+library(knitr)
+ctm <- model(ct)
+itm <- model(it)
+ptm <- model(pt)
+rtm <- model(rt)
+series <- c("ct", "it", "pt", "rt")
+mtable <- rbind(ctm, itm, ptm, rtm)
+cbind(series, mtable)
+
+```
+
+
+##Question 2
+
+```{r test, echo=FALSE, warning=FALSE}
+
+library(ggfortify)
+library(tseries)
+
+tsdata <- tibble(ct, it, pt, rt)
+tsdata <- ts(tsdata, start=c(1947,1), frequency = 4)
+
+trend_test <- function(data){
+  
+data <-  na.omit(data)
+
+adf <- adf.test(data, alternative = "explosive")
+adf_p <- unname(adf$p.value) %>% round(digits = 2)
+if (adf_p < 0.05) {
+  adf_con <- "trend stationary"
+} else {
+  adf_con <- "trend and unit root"
+}
+adf <- tibble(adf_con, adf_p) 
+
+pp <- pp.test(data, alternative = "explosive")
+pp_p <- unname(pp$p.value) %>% round(digits = 2)
+if (pp_p < 0.05) {
+  pp_con <- "trend stationary"
+} else {
+  pp_con <- "trend and unit root"
+}
+pp <- tibble(pp_con, pp_p) 
+
+kpss <- kpss.test(data, null='Trend')
+kpss_p <- unname(kpss$p.value) %>% round(digits = 2)
+if (kpss_p < 0.05) {
+  kpss_con <- "trend and unit root"
+} else {
+  kpss_con <- "trend stationary"
+}
+kpss <- tibble(kpss_con, kpss_p)
+
+
+
+ttable <- cbind(adf, pp, kpss) 
+return(ttable)
+}
+
+stationary_test <- function(data){
+
+data <- na.omit(data) 
+adf <- adf.test(data, alternative = "stationary")
+adf_p <- unname(adf$p.value) %>% round(digits = 2)
+if (adf_p < 0.05) {
+  adf_con <- "stationary"
+} else {
+  adf_con <- "unit root"
+}
+adf <- tibble(adf_con, adf_p) 
+
+pp <- pp.test(data, alternative = "stationary")
+pp_p <- unname(pp$p.value) %>% round(digits = 2)
+if (pp_p < 0.05) {
+  pp_con <- "stationary"
+} else {
+  pp_con <- "unit root"
+}
+pp <- tibble(pp_con, pp_p) 
+
+kpss <- kpss.test(data, null='Level')
+kpss_p <- unname(kpss$p.value) %>% round(digits = 2)
+if (kpss_p < 0.05) {
+  kpss_con <- "unit root"
+} else {
+  kpss_con <- "stationary"
+}
+kpss <- tibble(kpss_con, kpss_p)
+
+ttable <- cbind(adf, pp, kpss) 
+return(ttable)
+}
+
+autoplot(tsdata[,1], xlab = "time", ylab = "ct")
+autoplot(tsdata[,2], xlab = "time", ylab = "it")
+autoplot(tsdata[,3], xlab = "time", ylab = "pt")
+autoplot(tsdata[,4], xlab = "time", ylab = "rt")
+
+ctt <- trend_test(ct)
+itt <- trend_test(it)
+ptt <- trend_test(pt)
+rtt <- stationary_test(rt)
+
+ttable <- rbind(c("conclusion", "p.value", "conclusion", "p.value", "conclusion","p.value"), ctt, itt, ptt, rtt)
+ttable <- cbind(c("", series), ttable)
+kable(ttable, align = "l", col.names = c("", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests")
+
+
+```
+
+Where "adf_p" means p-values provided by ADF test, "adf_con" means 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
