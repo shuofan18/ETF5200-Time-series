@@ -1,13 +1,17 @@
 ---
-title: "Assignment 2"
-author: "Shuofan Zhang 27886913"
+fontsize: 10pt
+font: times
 output:
   pdf_document: default
   html_document:
     df_print: paged
 ---
+#ETF5200 Applied time series econometrics Project 1
 
-## Question 1
+
+##Part I  
+
+###Question 1  
 
 $c_t$ is the logarithm of the per-capital consumption expenditure, $i_t$ is the logarithm of the per-capital disposable income, $p_t$ is the logarithm of GDP, $r_t$ is the real interest rate.
 
@@ -16,7 +20,12 @@ All numbers are rounded to four decimal places.
 ```{r data, include=FALSE}
 setwd("/Users/stanza/documents/github/etf5200-time-series")
 library(tidyverse)
+library(forecast)
 library(readxl)
+library(lmtest)
+library(ggfortify)
+library(tseries)
+
 data <- read_excel("newdata.xlsx", sheet=1, range=cell_rows(9:261),  na="n/a")
 
 names(data)<-c("year","season", "i_t","c_t","r_t","g_t")
@@ -58,25 +67,19 @@ rtm <- model(rt)
 series <- c("ct", "p.value", "it", "p.value", "pt", "p.value", "rt", "p.value")
 mtable <- rbind(ctm, itm, ptm, rtm)
 mtable <- cbind(series, mtable)
-kable(mtable, align = "l", caption = "OLS estimates for each series")
+kable(mtable, align = "l", caption = "OLS estimates for each series, p.value is shown in the bracket below each estimates, most of them are insignificant based on 5% significance level")
 ```
 
 
-
-##Question 2
+###Question 2  
 
 ```{r functions, echo=FALSE, warning=FALSE}
-
-library(ggfortify)
-library(tseries)
 
 tsdata <- tibble(ct, it, pt, rt)
 tsdata <- ts(tsdata, start=c(1947,1), frequency = 4)
 
 trend_test <- function(data){
-  
 data <-  na.omit(data)
-
 adf <- adf.test(data, alternative = "explosive")
 adf_p <- unname(adf$p.value) %>% round(digits = 2)
 if (adf_p < 0.05) {
@@ -111,7 +114,6 @@ return(ttable)
 }
 
 stationary_test <- function(data){
-
 data <- na.omit(data) 
 adf <- adf.test(data, alternative = "stationary")
 adf_p <- unname(adf$p.value) %>% round(digits = 2)
@@ -145,7 +147,93 @@ return(ttable)
 }
 ```
 
-```{r ctplot, echo=FALSE, fig.cap="Time plot of four series", message=FALSE, warning=FALSE}
+To do unit root tests, we first need to determine whether there is trend or not. And for ADF test, we also need to find the proper lags. 
+
+Therefore, we plot each series to check the trend component. As shown in the figure 1 (Appendix), there are clear trend in ct, it and pt; but no trend in rt. So the hypothesis tests will be "has both unit root and trend" vs. "trend stationary" for ct, it and pt; "has unit root" vs. "stationary" in case of rt. 
+
+As for proper lags, we let "adf.test" function in R to automatically choose one, and it chooses 6, 6, 6, 5 for ct, it, pt, and rt respectively. Then we use Durbin-Watson test to test serial correlation in the associated four sets of residuals. All four p-values are not showing enough evidence to reject the null. So we think the lags chosen by "adf.test" are good enough based on 5% significance level. We will use them for ADF test directly.
+
+```{r experiment, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ct_lag <- adf.test(ct)$parameter %>% unname() %>% round(.,digits = 0)
+it_lag <- adf.test(it)$parameter %>% unname() %>% round(.,digits = 0)
+pt_lag <- adf.test(pt)$parameter %>% unname() %>% round(.,digits = 0)
+rt_lag <- na.omit(rt) %>% adf.test() %>% .$parameter %>% unname() %>% round(.,digits = 0)
+
+
+lagtable <- tibble(ct_lag, it_lag, pt_lag, rt_lag) %>% rename(., "ct"=ct_lag, "it"=it_lag, "pt"=pt_lag, "rt"=rt_lag)
+
+
+time <- 1:252
+
+lag2ct <- lag(lag(ct))
+lag3ct <- lag(lag2ct)
+lag4ct <- lag(lag3ct)
+lag5ct <- lag(lag4ct)
+lag6ct <- lag(lag5ct)
+
+lag2it <- lag(lag(it))
+lag3it <- lag(lag2it)
+lag4it <- lag(lag3it)
+lag5it <- lag(lag4it)
+lag6it <- lag(lag5it)
+
+lag2pt <- lag(lag(pt))
+lag3pt <- lag(lag2pt)
+lag4pt <- lag(lag3pt)
+lag5pt <- lag(lag4pt)
+lag6pt <- lag(lag5pt)
+
+lag2rt <- lag(lag(rt))
+lag3rt <- lag(lag2rt)
+lag4rt <- lag(lag3rt)
+lag5rt <- lag(lag4rt)
+
+pv_ct <- lm(ct~time+lag(ct)+lag2ct+lag3ct+lag4ct+lag5ct+lag6ct) %>% dwtest() %>% .$p.value %>% unname()
+pv_it <- lm(it~time+lag(it)+lag2it+lag3it+lag4it+lag5it+lag6it) %>% dwtest() %>% .$p.value %>% unname()
+pv_pt <- lm(pt~time+lag(pt)+lag2pt+lag3pt+lag4pt+lag5pt+lag6pt) %>% dwtest() %>% .$p.value %>% unname()
+pv_rt <- lm(rt~time+lag(rt)+lag2rt+lag3rt+lag4rt+lag5rt) %>% dwtest() %>% .$p.value %>% unname()
+
+pvtable <- tibble(pv_ct, pv_it, pv_pt, pv_rt) %>% rename(., "ct"=pv_ct, "it"=pv_it, "pt"=pv_pt, "rt"=pv_rt)
+
+rbind(lagtable, pvtable) %>% cbind(c("lags", "p.value"), .) %>% format(digits=2) -> lptable
+kable(lptable, col.names = c("", "ct", "it", "pt", "rt"), caption = "lags chosen by adf.test and p.value from Durbin-Watson test")
+
+```
+
+
+```{r tests, echo=FALSE, warning=FALSE}
+ctt <- trend_test(ct)
+itt <- trend_test(it)
+ptt <- trend_test(pt)
+rtt <- stationary_test(rt)
+
+ttable <- rbind(c("conclusion", "p.value", "conclusion", "p.value", "conclusion","p.value"), ctt, itt, ptt, rtt)
+series <- c("ct", "it","pt", "rt")
+ttable <- cbind(c("", series), ttable)
+kable(ttable, align = "l", col.names = c(" ", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests, ADF and PP always have same conclusions, KPSS makes two different decisions")
+
+```
+
+From the table, we can see that ADF and PP always make same decisions for these four series. Since there are no serial correlation left in the residuals for ADF test (given DW test), and the most important feature of PP test is to correct the calculation of standard deviation for the test statistic when there are serial correlation in the residuals, we expect ADF and PP to performs similarly in this case, so this result meets our expectation. What's more, KPSS differs from those two tests for "it" and "rt". Because KPSS test also expect the residuals to be i.i.d and it uses different lags with ADF test, so the residuals in KPSS test may not be i.i.d. With this possible violation of assumption, we think KPSS's conclusions are unreliable in this case.
+
+
+##Part II  
+
+###The main idea proposed  
+
+###The main techniques used  
+
+###The main data used  
+
+###The main results obtained  
+
+###The conclusions made in the paper  
+
+##Appendix
+
+```{r ctplot, echo=FALSE, fig.cap="Time plot of four series", message=FALSE, warning=FALSE, fig.show="asis"}
 library(gridExtra)
 ctp <- autoplot(tsdata[,1], xlab = "time", ylab = "ct")
 itp <- autoplot(tsdata[,2], xlab = "time", ylab = "it")
@@ -155,18 +243,7 @@ grid.arrange(ctp, itp, ptp, rtp, ncol=2)
 ```
 
 
-```{r tests, echo=FALSE, warning=TRUE}
-ctt <- trend_test(ct)
-itt <- trend_test(it)
-ptt <- trend_test(pt)
-rtt <- stationary_test(rt)
 
-ttable <- rbind(c("conclusion", "p.value", "conclusion", "p.value", "conclusion","p.value"), ctt, itt, ptt, rtt)
-series <- c("ct", "it","pt", "rt")
-ttable <- cbind(c("", series), ttable)
-kable(ttable, align = "l", col.names = c(" ", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests")
-
-```
 
 
 

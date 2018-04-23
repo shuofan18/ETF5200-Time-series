@@ -1,0 +1,215 @@
+\documentclass[10pt,]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+  \title{}
+  \pretitle{\vspace{\droptitle}}
+  \posttitle{}
+  \author{}
+  \preauthor{}\postauthor{}
+  \date{}
+  \predate{}\postdate{}
+
+
+\begin{document}
+
+\begin{aligned}#ETF5200 Applied time series econometrics Project 1\end{aligned}
+
+\subsection{Part I}\label{part-i}
+
+\subsubsection{Question 1}\label{question-1}
+
+\(c_t\) is the logarithm of the per-capital consumption expenditure,
+\(i_t\) is the logarithm of the per-capital disposable income, \(p_t\)
+is the logarithm of GDP, \(r_t\) is the real interest rate.
+
+All numbers are rounded to four decimal places.
+
+\begin{longtable}[]{@{}lllll@{}}
+\caption{OLS estimates for each series, p.value is shown in the bracket
+below each estimates, most of them are insignificant based on 5\%
+significance level}\tabularnewline
+\toprule
+series & variance & alpha & beta & gamma\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+series & variance & alpha & beta & gamma\tabularnewline
+\midrule
+\endhead
+ct & 0.0001 & 0.0743 & 0.0001 & -0.0091\tabularnewline
+p.value & & (0.4646) & (0.5941) & (0.5266)\tabularnewline
+it & 0.0001 & 0.0873 & 0.0001 & -0.0107\tabularnewline
+p.value & & (0.3252) & (0.487) & (0.3875)\tabularnewline
+pt & 0.0001 & 0.108 & 0.0001 & -0.013\tabularnewline
+p.value & & (0.3119) & (0.45) & (0.3602)\tabularnewline
+rt & 0.8986 & 0.2328 & -0.0007 & -0.0835\tabularnewline
+p.value & & (0.1251) & (0.5662) & (0.0059)\tabularnewline
+\bottomrule
+\end{longtable}
+
+\subsubsection{Question 2}\label{question-2}
+
+To do unit root tests, we first need to determine whether there is trend
+or not. And for ADF test, we also need to find the proper lags.
+
+Therefore, we plot each series to check the trend component. As shown in
+the figure 1 (Appendix), there are clear trend in ct, it and pt; but no
+trend in rt. So the hypothesis tests will be ``has both unit root and
+trend'' vs. ``trend stationary'' for ct, it and pt; ``has unit root''
+vs. ``stationary'' in case of rt.
+
+As for proper lags, we let ``adf.test'' function in R to automatically
+choose one, and it chooses 6, 6, 6, 5 for ct, it, pt, and rt
+respectively. Then we use Durbin-Watson test to test serial correlation
+in the associated four sets of residuals. All four p-values are not
+showing enough evidence to reject the null. So we think the lags chosen
+by ``adf.test'' are good enough based on 5\% significance level. We will
+use them for ADF test directly.
+
+\begin{longtable}[]{@{}lllll@{}}
+\caption{lags chosen by adf.test and p.value from Durbin-Watson
+test}\tabularnewline
+\toprule
+& ct & it & pt & rt\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+& ct & it & pt & rt\tabularnewline
+\midrule
+\endhead
+lags & 6.00 & 6.00 & 6.0 & 5.00\tabularnewline
+p.value & 0.41 & 0.44 & 0.4 & 0.29\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{longtable}[]{@{}lllllll@{}}
+\caption{Three unit root tests, ADF and PP always have same conclusions,
+KPSS makes two different decisions}\tabularnewline
+\toprule
+& ADF & ADF & PP & PP & KPSS & KPSS\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+& ADF & ADF & PP & PP & KPSS & KPSS\tabularnewline
+\midrule
+\endhead
+& conclusion & p.value & conclusion & p.value & conclusion &
+p.value\tabularnewline
+ct & trend and unit root & 0.1 & trend and unit root & 0.21 & trend and
+unit root & 0.01\tabularnewline
+it & trend stationary & 0.02 & trend stationary & 0.03 & trend and unit
+root & 0.01\tabularnewline
+pt & trend and unit root & 0.32 & trend and unit root & 0.32 & trend and
+unit root & 0.01\tabularnewline
+rt & unit root & 0.09 & unit root & 0.11 & stationary &
+0.08\tabularnewline
+\bottomrule
+\end{longtable}
+
+From the table, we can see that ADF and PP always make same decisions
+for these four series. Since there are no serial correlation left in the
+residuals for ADF test (given DW test), and the most important feature
+of PP test is to correct the calculation of standard deviation for the
+test statistic when there are serial correlation in the residuals, we
+expect ADF and PP to performs similarly in this case, so this result
+meets our expectation. What's more, KPSS differs from those two tests
+for ``it'' and ``rt''. Because KPSS test also expect the residuals to be
+i.i.d and it uses different lags with ADF test, so the residuals in KPSS
+test may not be i.i.d. With this possible violation of assumption, we
+think KPSS's conclusions are unreliable in this case.
+
+\subsection{Part II}\label{part-ii}
+
+\subsubsection{The main idea proposed}\label{the-main-idea-proposed}
+
+\subsubsection{The main techniques used}\label{the-main-techniques-used}
+
+\subsubsection{The main data used}\label{the-main-data-used}
+
+\subsubsection{The main results
+obtained}\label{the-main-results-obtained}
+
+\subsubsection{The conclusions made in the
+paper}\label{the-conclusions-made-in-the-paper}
+
+\subsection{Appendix}\label{appendix}
+
+\begin{figure}
+\centering
+\includegraphics{new_asg2_files/figure-latex/ctplot-1.pdf}
+\caption{Time plot of four series}
+\end{figure}
+
+
+\end{document}
