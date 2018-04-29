@@ -1,21 +1,26 @@
 ---
-fontsize: 10pt
-font: times
+title: "ETF5200 Applied time series econometrics"
+subtitle: "Project 1"
+author: "Shuofan Zhang 27886913"
+bibliography: reference.bib
+date: ''
 output:
   pdf_document: default
-  html_document:
-    df_print: paged
+link-citations: yes
+delete_merged_file: yes
+biblio-style: apalike
+toc: yes
 ---
-#ETF5200 Applied time series econometrics Project 1
 
+#Part I  
 
-##Part I  
+In this section, we investigate data generating process of four data series of 1960-2009 from the Bureau of Economic Analysis. 
+$c_t$ is the logarithm of the per-capital consumption expenditure, $i_t$ is the logarithm of the per-capital disposable income, $p_t$ is the logarithm of GDP, $r_t$ is the real interest rate. All numbers are rounded to four decimal places.
 
-###Question 1  
+##Question 1  
 
-$c_t$ is the logarithm of the per-capital consumption expenditure, $i_t$ is the logarithm of the per-capital disposable income, $p_t$ is the logarithm of GDP, $r_t$ is the real interest rate.
-
-All numbers are rounded to four decimal places.
+For each of the data sets, we calculate the OLS estimates of $\alpha$, $\beta$, $\gamma$ and $\sigma_u^2$ assuming the model specified below is correct.
+$$\Delta y_t=\alpha+\beta t+\gamma y_{t-1}+u_t$$
 
 ```{r data, include=FALSE}
 setwd("/Users/stanza/documents/github/etf5200-time-series")
@@ -58,20 +63,20 @@ model <- function(x){
 
 ```
 
-```{r model, echo=FALSE}
+```{r model, echo=FALSE, message=FALSE, warning=FALSE}
 library(knitr)
 ctm <- model(ct)
 itm <- model(it)
 ptm <- model(pt)
 rtm <- model(rt)
-series <- c("ct", "p.value", "it", "p.value", "pt", "p.value", "rt", "p.value")
+series <- c("ct", "(p.value)", "it", "(p.value)", "pt", "(p.value)", "rt", "(p.value)")
 mtable <- rbind(ctm, itm, ptm, rtm)
 mtable <- cbind(series, mtable)
-kable(mtable, align = "l", caption = "OLS estimates for each series, p.value is shown in the bracket below each estimates, most of them are insignificant based on 5% significance level")
+kable(mtable, align = "l", caption = "OLS estimates for each series, p.value is shown in the bracket below each estimates, most of them are insignificant based on 5% significance level", padding = 2)
 ```
 
 
-###Question 2  
+##Question 2  
 
 ```{r functions, echo=FALSE, warning=FALSE}
 
@@ -85,7 +90,7 @@ adf_p <- unname(adf$p.value) %>% round(digits = 2)
 if (adf_p < 0.05) {
   adf_con <- "trend stationary"
 } else {
-  adf_con <- "trend and unit root"
+  adf_con <- "unit root with drift"
 }
 adf <- tibble(adf_con, adf_p) 
 
@@ -94,14 +99,14 @@ pp_p <- unname(pp$p.value) %>% round(digits = 2)
 if (pp_p < 0.05) {
   pp_con <- "trend stationary"
 } else {
-  pp_con <- "trend and unit root"
+  pp_con <- "unit root with drift"
 }
 pp <- tibble(pp_con, pp_p) 
 
 kpss <- kpss.test(data, null='Trend')
 kpss_p <- unname(kpss$p.value) %>% round(digits = 2)
 if (kpss_p < 0.05) {
-  kpss_con <- "trend and unit root"
+  kpss_con <- "unit root with drift"
 } else {
   kpss_con <- "trend stationary"
 }
@@ -149,7 +154,21 @@ return(ttable)
 
 To do unit root tests, we first need to determine whether there is trend or not. And for ADF test, we also need to find the proper lags. 
 
-Therefore, we plot each series to check the trend component. As shown in the figure 1 (Appendix), there are clear trend in ct, it and pt; but no trend in rt. So the hypothesis tests will be "has both unit root and trend" vs. "trend stationary" for ct, it and pt; "has unit root" vs. "stationary" in case of rt. 
+```{r ctplot, echo=FALSE, fig.cap="Time plot of four series", message=FALSE, warning=FALSE, fig.show="asis"}
+library(gridExtra)
+ctp <- autoplot(tsdata[,1], xlab = "time", ylab = "ct")
+itp <- autoplot(tsdata[,2], xlab = "time", ylab = "it")
+ptp <- autoplot(tsdata[,3], xlab = "time", ylab = "pt")
+rtp <- autoplot(tsdata[,4], xlab = "time", ylab = "rt")
+grid.arrange(ctp, itp, ptp, rtp, ncol=2)
+```
+
+Therefore, we plot each series to check the trend component. As shown in the figure 1, there are clear trend in "ct", "it" and "pt"; but no trend in "rt". So the hypothesis tests for "ct", "it" and "pt" is 
+$$H_0: this \ series\  has\  a\  unit\  root\  with\  drift \ (unit\ root\ with\ drift)$$ 
+$$H_a: this \ series\ has\ a\ time\ trend\ but\ no\ unit\ root \ (trend \ stationary)$$
+The hypothesis test for "rt" is 
+$$H_0: this \ series\  has\  a\  unit\  root \ (unit\ root)$$ 
+$$H_a: this \ series\ is\ stationary\ (stationary)$$
 
 As for proper lags, we let "adf.test" function in R to automatically choose one, and it chooses 6, 6, 6, 5 for ct, it, pt, and rt respectively. Then we use Durbin-Watson test to test serial correlation in the associated four sets of residuals. All four p-values are not showing enough evidence to reject the null. So we think the lags chosen by "adf.test" are good enough based on 5% significance level. We will use them for ADF test directly.
 
@@ -216,31 +235,95 @@ kable(ttable, align = "l", col.names = c(" ", "ADF", "ADF", "PP", "PP", "KPSS", 
 
 ```
 
-From the table, we can see that ADF and PP always make same decisions for these four series. Since there are no serial correlation left in the residuals for ADF test (given DW test), and the most important feature of PP test is to correct the calculation of standard deviation for the test statistic when there are serial correlation in the residuals, we expect ADF and PP to performs similarly in this case, so this result meets our expectation. What's more, KPSS differs from those two tests for "it" and "rt". Because KPSS test also expect the residuals to be i.i.d and it uses different lags with ADF test, so the residuals in KPSS test may not be i.i.d. With this possible violation of assumption, we think KPSS's conclusions are unreliable in this case.
+From the table, we can see that ADF and PP always make same decisions for these four series. Since there are no serial correlation left in the residuals for ADF test (given DW test), and the most important feature of PP test is to correct the calculation of standard deviation for the test statistic when there are serial correlation in the residuals, we expect ADF and PP to performs similarly in this case, so this result meets our expectation. What's more, KPSS differs from those two tests for "it" and "rt". Because KPSS test also expect the residuals to be i.i.d and it uses different lags with ADF test, so the residuals in KPSS test may not be i.i.d. With this possible violation of assumption, we think KPSS's conclusions are relatively more unreliable in this case.
+
+Three out of four series fail to reject the unit root hypothesis. However, given the low power of the test against stationary but highly persistent alternatives, we cannot conclude that these three series do have unit root.
+
+#Part II  
+
+Part II is about @zivot2002.
+
+##The main idea proposed  
+
+@nelson1982 challenged the traditional view by arguing that most macroeconomic and financial aggregates cannot reject the unit root hypothesis using Dickey-Fuller test.
+
+However, @perron1989 disagrees with Nelson and Plosser. He suggests that once the 1929 crash is taken as exogenous event and put into the regression, "for 11 out of the 14 series analyzed by Nelson and Plosser can be rejected at a high confidence level the unit root hypothesis". He also analyzes the postwar quarterly real GNP series using similar approach and again rejects the null hypothesis. 
+
+Based on what @perron1989 did, @zivot2002 enter the debate using the same data set with @perron1989 but an altered test statistics. To be more specific, their paper argues that the "exogenous" assumption used by Perron is inappropriate. Instead, they think the breakpoint should be estimated but not fixed since it could be a realization from the tail of the underlying "true" distribution. In this paper, they talk about how to estimate the breakpoint. A new test statistic is created accounting for this consideration. Furthermore, they construct the asymptotic distribution and finite-sample distribution for this new test statistics. Finally, they compare their test results with Perron's. In addition, the effect of leptokurtosis and temporally dependent innovations is investigated. It turns out the test conclusion is sensitive to the assumption made by Perron.
+
+##The main techniques used  
+###Test regression  
+The ADF (adjusted Dickey-Fuller) test is used for the unit root test, the test regression is estimated by OLS. Given different behavior of the data, three regression equations are used to test for a unit root. The first specification is designed to capture the change in level before and after the breakpoint; the second one is for the change in slope caused by the shock; the third one encompasses the first two scenarios.
+$$y_t=\hat{\mu}^A+\hat{\theta}^A DU_t(\hat{\lambda})+\hat{\beta}^A t+\hat{\alpha}^Ay_{t-1}+\sum_{j=1}^k \hat{c_j}^A \Delta y_{t-j}+\hat{e_t}$$
+$$y_t= \hat{\mu}^B +\hat{\gamma}^B DT_t^*(\hat{\lambda}) +\hat{\beta}^B t
++\hat{\alpha}^B y_{t-1}+\sum_{j=1}^k \hat{c_j}^B \Delta y_{t-j}+\hat{e_t}$$
+$$y_t=\hat{\mu}^C+\hat{\theta}^C DU_t(\hat{\lambda})+\hat{\beta}^C t+\hat{\gamma}^C DT_t^*(\hat{\lambda})+\hat{\alpha}^C y_{t-1}+\sum_{j=1}^k \hat{c_j}^C \Delta y_{t-j}+\hat{e_t}$$
+where $T\hat{\lambda}$ gives the estimated location of the breakpoint, the $\hat{\lambda}$ is chosen such that the one-sided t-statistic for testing $\alpha=1$ is minimized (in favor to the trend stationary alternative); $DU_t(\lambda)=1\ and\ DT_t^*(\lambda)=t-T\lambda$ only for observations after the breakpoint and both of them are equal to 0 otherwise. 
+
+###Asymptotic distribution  
+
+The asymptotic distribution is constructed by assuming standard Brownian motion for the residuals. 
+$$\underset{\lambda\in\Lambda}{inf}\ \ t_{\hat{\alpha}^i}(\lambda) \ \underset{\rightarrow}{d} \ \ \underset{\lambda\in\Lambda}{inf}\ \bigg( \int_0^1 W^i(\lambda , r)^2 dr \bigg)^{-1/2}
+\times 
+\bigg( \int_0^1 W^i(\lambda , r) dW(r) \bigg)\ as\ T \rightarrow \infty\ \forall i=A,\ B,\ C$$
+To eliminate possible nuisance-parameter dependency problem, extra lags of first differences of the data are employed as regressors (which is represented by $\sum_{j=1}^k \hat{c_j}^i \Delta y_{t-j}$ in the regression). The number of lags are determined by working backward from $k=\bar{k}$ and choosing the first k such that the t-statistic is greater than 1.6 in absolute value (with $\bar{k}=8$ for Nelson and Plosser, $\bar{k}=12$ for postwar series). 
 
 
-##Part II  
+###Finite-sample distribution  
 
-###The main idea proposed  
+Monte Carlo methods are used to compute the exact finite-sample distribution of the test statistics.
 
-###The main techniques used  
+##The main data used  
 
-###The main data used  
+Two data sets are used in this paper, the same with what Perron used in his paper.
 
-###The main results obtained  
+* The Nelson and Plosser data.
 
-###The conclusions made in the paper  
+It is the U.S. historical time series which include measures of output, spending, money, prices, and interest rates (total 13 series). The data are annual, generally averages for the year, with starting dates from 1860 to 1909 and ending in 1970 in all cases. All series except interest rate are transformed to natural logs. [@nelson1982]
 
-##Appendix
+* The postwar quarterly real GNP series extracted from the Citibase data bank.
 
-```{r ctplot, echo=FALSE, fig.cap="Time plot of four series", message=FALSE, warning=FALSE, fig.show="asis"}
-library(gridExtra)
-ctp <- autoplot(tsdata[,1], xlab = "time", ylab = "ct")
-itp <- autoplot(tsdata[,2], xlab = "time", ylab = "it")
-ptp <- autoplot(tsdata[,3], xlab = "time", ylab = "pt")
-rtp <- autoplot(tsdata[,4], xlab = "time", ylab = "rt")
-grid.arrange(ctp, itp, ptp, rtp, ncol=2)
+ The data is from 1947:I to 1986:III and so contains only one break as well, the 1973 oil shock. [@perron1989]
+
+##The main results obtained  
+
+
+
+##The conclusions made in the paper  
+
+##Discussion
+
+```{r sim, echo=FALSE}
+year<-1863:1973
+yt_null <- vector()
+yt_1 <- 0
+set.seed(4)
+for (t in 1:111) {
+  yt_null[t] <- 0.217+ yt_1 +rnorm(1, 0, 1)
+  yt_1 <- yt_null[t]
+}
+yt_null <- as.ts(yt_null)
+pnull <- autoplot(yt_null)
+
+yt_al <- vector()
+d0 <- rep(0, 10)
+d1 <- rep(1, 101)
+du <- c(d0, d1)
+yt_1 <-0
+
+for (t in 1:111) {
+  yt_al[t] <- 0.217 - 0.055*du[t]+0.001*year[t]+ 0.941*yt_1+rnorm(1, 0, 1)
+  yt_1 <- yt_al[t]
+}
+yt_al <- as.ts(yt_al)
+pal <- autoplot(yt_al)
+
+grid.arrange(pnull, pal)
 ```
+
+#Reference  
+
+
 
 
 
