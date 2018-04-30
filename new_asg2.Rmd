@@ -332,7 +332,7 @@ for (t in 1:111) {
   yt_1 <- yt_null[t]
 }
 yt_null <- as.ts(yt_null)
-pnull <- autoplot(yt_null, xlab="year", ylab="consumer prices")
+pnull <- autoplot(yt_null, xlab="year", ylab="simulated consumer prices")
 
 yt_al <- vector()
 d0 <- rep(0, 10)
@@ -345,12 +345,12 @@ for (t in 1:111) {
   yt_1 <- yt_al[t]
 }
 yt_al <- as.ts(yt_al)
-pal <- autoplot(yt_al, xlab="year", ylab="consumer prices")
+pal <- autoplot(yt_al, xlab="year", ylab="simulated consumer prices")
 
 grid.arrange(pnull, pal)
 ```
 
-It is already a difficult task to distinguish a unit root with drift from a highly presistent trend stationary process. It certainly will be much more difficult to distinguish the former from a stationary one with a broken trend. All three studies [@perron1989, @nelson1982, @zivot2002] are inspiring and stimulating. 
+It is already a difficult task to distinguish a unit root with drift from a highly presistent trend stationary process. It certainly will be much more difficult to distinguish the former from a stationary one with a broken trend. All three studies @perron1989, @nelson1982, @zivot2002 are inspiring and stimulating. 
 As @perron1989 said, "whichever view one adopts cannot be decided by data alone". It is reasonable to consider what happens in the real world and make decisions about how we should use all those relevant information. However, Perron believes the great crash and oil shock are exogenous to the data generating process which seems not realistic since political or other types of events are often related to the economic growth. @zivot2002 process takes care of this endogeneity. Although their methods are creative and useful, however, it seems to be purely data manipulation.
 Therefore, I think a better approach is a combination of @perron1989 and @zivot2002. 
 First one should study the data thoroughly, determine if there is possible breaks in the trend, how many breaks there are, if there are any big events happening near the skeptical breaks (war, financial crisis, etc). Then estimated locations of the breaks can be obtained by different methods (minimize/maximize the test statistic or maximize test power, etc). 
