@@ -231,11 +231,11 @@ rtt <- stationary_test(rt)
 ttable <- rbind(c("conclusion", "p.value", "conclusion", "p.value", "conclusion","p.value"), ctt, itt, ptt, rtt)
 series <- c("ct", "it","pt", "rt")
 ttable <- cbind(c("", series), ttable)
-kable(ttable, align = "l", col.names = c(" ", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests, ADF and PP always have same conclusions, KPSS makes two different decisions")
+kable(ttable, align = "l", col.names = c(" ", "ADF", "ADF", "PP", "PP", "KPSS", "KPSS"), caption = "Three unit root tests, ADF and PP always have same conclusions, KPSS makes two different decisions, all conclusions are based on 5% level")
 
 ```
 
-From the table, we can see that ADF and PP always make same decisions for these four series. Since there are no serial correlation left in the residuals for ADF test (given DW test), and the most important feature of PP test is to correct the calculation of standard deviation for the test statistic when there are serial correlation in the residuals, we expect ADF and PP to performs similarly in this case, so this result meets our expectation. What's more, KPSS differs from those two tests for "it" and "rt". Because KPSS test also expect the residuals to be i.i.d and it uses different lags with ADF test, so the residuals in KPSS test may not be i.i.d. With this possible violation of assumption, we think KPSS's conclusions are relatively more unreliable in this case.
+From the table, we can see that ADF and PP always make same decisions for these four series at 5% significance level. Since there are no serial correlation left in the residuals for ADF test (given DW test), and the most important feature of PP test is to correct the calculation of standard deviation for the test statistic when there are serial correlation in the residuals, we expect ADF and PP to performs similarly in this case, so this result meets our expectation. What's more, KPSS differs from those two tests for "it" and "rt". Because KPSS test also expect the residuals to be i.i.d and it uses different lags with ADF test, so the residuals in KPSS test may not be i.i.d. With this possible violation of assumption, we think KPSS's conclusions are relatively more unreliable in this case.
 
 Three out of four series fail to reject the unit root hypothesis. However, given the low power of the test against stationary but highly persistent alternatives, we cannot conclude that these three series do have unit root.
 
@@ -249,10 +249,12 @@ Part II is about @zivot2002.
 
 However, @perron1989 disagrees with Nelson and Plosser. He suggests that once the 1929 crash is taken as exogenous event and put into the regression, "for 11 out of the 14 series analyzed by Nelson and Plosser can be rejected at a high confidence level the unit root hypothesis". He also analyzes the postwar quarterly real GNP series using similar approach and again rejects the null hypothesis. 
 
-Based on what @perron1989 did, @zivot2002 enter the debate using the same data set with @perron1989 but an altered test statistics. To be more specific, their paper argues that the "exogenous" assumption used by Perron is inappropriate. Instead, they think the breakpoint should be estimated but not fixed since it could be a realization from the tail of the underlying "true" distribution. In this paper, they talk about how to estimate the breakpoint. A new test statistic is created accounting for this consideration. Furthermore, they construct the asymptotic distribution and finite-sample distribution for this new test statistics. Finally, they compare their test results with Perron's. In addition, the effect of leptokurtosis and temporally dependent innovations is investigated. It turns out the test conclusion is sensitive to the assumption made by Perron.
+Based on what @perron1989 did, @zivot2002 enter the debate using the same data set with @perron1989 but an altered test statistics. To be more specific, their paper argues that the "exogenous" assumption used by Perron is inappropriate. Instead, they think the breakpoint should be estimated but not fixed since it could be a realization from the tail of the underlying "true" distribution. In this paper, they talk about how to estimate the breakpoint. A new test statistic is created accounting for this consideration. Furthermore, they construct the asymptotic distribution and finite-sample distribution for this new test statistics. Finally, they compare their test results with Perron's. In addition, the effect of leptokurtosis and temporally dependent innovations is investigated. It turns out the test conclusion is sensitive to the assumption made by Perron. Once the "exogenous" assumption is relaxed and small sample bias is taken care of, most of the test conclusions will be changed.
 
 ##The main techniques used  
-###Test regression  
+
+* Test regression  
+
 The ADF (adjusted Dickey-Fuller) test is used for the unit root test, the test regression is estimated by OLS. Given different behavior of the data, three regression equations are used to test for a unit root. The first specification is designed to capture the change in level before and after the breakpoint; the second one is for the change in slope caused by the shock; the third one encompasses the first two scenarios.
 $$y_t=\hat{\mu}^A+\hat{\theta}^A DU_t(\hat{\lambda})+\hat{\beta}^A t+\hat{\alpha}^Ay_{t-1}+\sum_{j=1}^k \hat{c_j}^A \Delta y_{t-j}+\hat{e_t}$$
 $$y_t= \hat{\mu}^B +\hat{\gamma}^B DT_t^*(\hat{\lambda}) +\hat{\beta}^B t
@@ -260,18 +262,20 @@ $$y_t= \hat{\mu}^B +\hat{\gamma}^B DT_t^*(\hat{\lambda}) +\hat{\beta}^B t
 $$y_t=\hat{\mu}^C+\hat{\theta}^C DU_t(\hat{\lambda})+\hat{\beta}^C t+\hat{\gamma}^C DT_t^*(\hat{\lambda})+\hat{\alpha}^C y_{t-1}+\sum_{j=1}^k \hat{c_j}^C \Delta y_{t-j}+\hat{e_t}$$
 where $T\hat{\lambda}$ gives the estimated location of the breakpoint, the $\hat{\lambda}$ is chosen such that the one-sided t-statistic for testing $\alpha=1$ is minimized (in favor to the trend stationary alternative); $DU_t(\lambda)=1\ and\ DT_t^*(\lambda)=t-T\lambda$ only for observations after the breakpoint and both of them are equal to 0 otherwise. 
 
-###Asymptotic distribution  
+* Asymptotic distribution  
 
-The asymptotic distribution is constructed by assuming standard Brownian motion for the residuals. 
+The asymptotic distribution is constructed by assuming standard Brownian motion for the minimum t-statistic. 
 $$\underset{\lambda\in\Lambda}{inf}\ \ t_{\hat{\alpha}^i}(\lambda) \ \underset{\rightarrow}{d} \ \ \underset{\lambda\in\Lambda}{inf}\ \bigg( \int_0^1 W^i(\lambda , r)^2 dr \bigg)^{-1/2}
 \times 
 \bigg( \int_0^1 W^i(\lambda , r) dW(r) \bigg)\ as\ T \rightarrow \infty\ \forall i=A,\ B,\ C$$
 To eliminate possible nuisance-parameter dependency problem, extra lags of first differences of the data are employed as regressors (which is represented by $\sum_{j=1}^k \hat{c_j}^i \Delta y_{t-j}$ in the regression). The number of lags are determined by working backward from $k=\bar{k}$ and choosing the first k such that the t-statistic is greater than 1.6 in absolute value (with $\bar{k}=8$ for Nelson and Plosser, $\bar{k}=12$ for postwar series). 
+As to the critical values, simulation methods are used to get an approximation of the integral.
 
+* Finite-sample distribution  
 
-###Finite-sample distribution  
-
-Monte Carlo methods are used to compute the exact finite-sample distribution of the test statistics.
+Under the null hypothesis, the model is 
+$$y_t=\mu+y_{t-1}+e_t$$
+Suppose $e_t \sim ARMA(p, q)$ then, $y_t-y_{t-1} \sim ARMA(p, q)$ as well, therefore, the estimated $\hat{p}$ and $\hat{q}$ can be obtained by fitting the best ARMA model to the first difference of $y_t$. Treating these estimated $\hat{p}$ and $\hat{q}$ as part of the true data generating process, Monte Carlo methods can be used to compute the exact finite-sample distribution of the test statistics. 
 
 ##The main data used  
 
@@ -283,17 +287,41 @@ It is the U.S. historical time series which include measures of output, spending
 
 * The postwar quarterly real GNP series extracted from the Citibase data bank.
 
- The data is from 1947:I to 1986:III and so contains only one break as well, the 1973 oil shock. [@perron1989]
+The data is from 1947:I to 1986:III and so contains only one break as well, the 1973 oil shock. The 1973 oil price shock did not cause a significant drop in the level of the series. However, after that date, the slope of the trend function has sensibly decreased. The data is transformed to natural logs. [@perron1989]  
 
 ##The main results obtained  
 
+* Distribution of t-statistic
 
+Two of the primary results in this paper are the limiting distribution and finite-sample distribution of the t-statistic. From the plot given by @zivot2002 (figure 1), we can see from the left to the right are finite-sample distribution, limiting distribution and Perron's distribution respectively. Therefore, for a left-tailed test, it is the most difficult to reject the null under the finite-sample distribution and easiest under Perron's.
+
+* Test results
+
+The majority of the t-statistics obtained in this paper are bigger (more in favor to the alternative hypothesis) than Perron's in that the test regression does not include the dummy variable, $D(T_B)_t=1$ only when $t=T_B+1$. Also the estimated breakpoint differs with Perron's for the postwar quarterly real GNP. 
+
+Under the asymptotic distribution, @zivot2002 fail to reject 5 out of 11 series in Nelson and Plosser data set which was rejected by @perron1989 at 5% significance level, the postwar quarterly real GNP is not rejected as well. 
+
+Under the finite-sample distribution, 3 more "Perron rejected" series in Nelson and Plosser data set are not rejected anymore. Table below shows the comparison between Zivot and Perron's test conclusion based on 5% level.
+
+```{r table, echo=FALSE}
+tests <- c("Perron", "Zivot asymptotic", "Zivot finite-sample")
+names(tests) <- c(1,2,3)
+rejection <- c("11","6", "3")
+names(rejection) <-c(1,2,3)
+compare_table <- rbind(tests, rejection)
+kable(compare_table, col.names = c("", "", ""), caption = "Comparison of number of rejections made by different tests, out of 14 series, all based on 5% level")
+```
 
 ##The conclusions made in the paper  
 
-##Discussion
+Although the evidence of the unit root hypothesis being rejected by the majority of the series is weakened, after endogenizing the breakpoint selection and correction for small sample bias, it does not necessarily mean that unit root are accepted. Because the low power of the test against trend stationary with broken trend series. 
+On the other hand, there are still some series being rejected by @zivot2002, these series passed the toughest test, we can say there are stronger evidence for them not being unit root.
 
-```{r sim, echo=FALSE}
+##Some Discussion  
+
+Following the estimates in table 6 in @zivot2002, I simulated two series for the consumer prices as shown in figure 2. One is generated under the null hypothesis while the other one is under the alternative. Can you tell which one is which?
+
+```{r simplot, echo=FALSE, fig.cap="Two simulated series for consumer prices using estimates from table 6 in the article under discussion, the first one is generated under the null hypothesis while the second one is under the alternative.", fig.show="asis", message=FALSE, warning=FALSE}
 year<-1863:1973
 yt_null <- vector()
 yt_1 <- 0
@@ -303,7 +331,7 @@ for (t in 1:111) {
   yt_1 <- yt_null[t]
 }
 yt_null <- as.ts(yt_null)
-pnull <- autoplot(yt_null)
+pnull <- autoplot(yt_null, xlab="year", ylab="consumer prices")
 
 yt_al <- vector()
 d0 <- rep(0, 10)
@@ -316,10 +344,13 @@ for (t in 1:111) {
   yt_1 <- yt_al[t]
 }
 yt_al <- as.ts(yt_al)
-pal <- autoplot(yt_al)
+pal <- autoplot(yt_al, xlab="year", ylab="consumer prices")
 
 grid.arrange(pnull, pal)
 ```
+
+It is already a difficult task to distinguish a unit root with drift from a highly presistent trend stationary process. It certainly will be much more difficult to distinguish the former from a stationary one with a broken trend. All three studies [@perron1989, @nelson1982, @zivot2002] are inspiring and stimulating. 
+As @perron1989 said, "whichever view one adopts cannot be decided by data alone". It is reasonable to consider what happens in the real world and make decisions about how we should use all those relevant information. Perron believes the great crash and oil shock are exogenous to the data generating process, while Zivot thinks differently. Although I think it is more appealing that political or other types of events are related to the economic growth, so it might be inappropriate to view them as exogenous. I do not think Zivot's process is ideal to deal with this endogeneity. The approach they used seems to be purely data manipulation. 
 
 #Reference  
 
