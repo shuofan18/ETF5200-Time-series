@@ -4,6 +4,7 @@ subtitle: "Project 1"
 author: "Shuofan Zhang 27886913"
 bibliography: reference.bib
 date: ''
+fontsize: 12pt
 output:
   pdf_document: default
 link-citations: yes
@@ -314,12 +315,12 @@ kable(compare_table, col.names = c("", "", ""), caption = "Comparison of number 
 
 ##The conclusions made in the paper  
 
-Although the evidence of the unit root hypothesis being rejected by the majority of the series is weakened, after endogenizing the breakpoint selection and correction for small sample bias, it does not necessarily mean that unit root are accepted. Because the low power of the test against trend stationary with broken trend series. 
-On the other hand, there are still some series being rejected by @zivot2002, these series passed the toughest test, we can say there are stronger evidence for them not being unit root.
+Although the evidence of the unit root hypothesis being rejected by the majority of the series is weakened, after endogenizing the breakpoint selection and correcting for small sample bias. However, it does not necessarily mean that unit root hypothesis being accepted. Because the low power of the test against trend stationary with broken trend series. 
+On the other hand, there are still three series being rejected by @zivot2002, these series passed the toughest test, we can say there are stronger evidence for them not being unit root.
 
 ##Some Discussion  
 
-Following the estimates in table 6 in @zivot2002, I simulated two series for the consumer prices as shown in figure 2. One is generated under the null hypothesis while the other one is under the alternative. Can you tell which one is which?
+Following the estimates in table 6 in @zivot2002, I simulated two series for the "consumer prices" as shown in figure 2. One is generated under the null hypothesis while the other one is under the alternative. Can you tell which one is which?
 
 ```{r simplot, echo=FALSE, fig.cap="Two simulated series for consumer prices using estimates from table 6 in the article under discussion, the first one is generated under the null hypothesis while the second one is under the alternative.", fig.show="asis", message=FALSE, warning=FALSE}
 year<-1863:1973
@@ -350,7 +351,9 @@ grid.arrange(pnull, pal)
 ```
 
 It is already a difficult task to distinguish a unit root with drift from a highly presistent trend stationary process. It certainly will be much more difficult to distinguish the former from a stationary one with a broken trend. All three studies [@perron1989, @nelson1982, @zivot2002] are inspiring and stimulating. 
-As @perron1989 said, "whichever view one adopts cannot be decided by data alone". It is reasonable to consider what happens in the real world and make decisions about how we should use all those relevant information. Perron believes the great crash and oil shock are exogenous to the data generating process, while Zivot thinks differently. Although I think it is more appealing that political or other types of events are related to the economic growth, so it might be inappropriate to view them as exogenous. I do not think Zivot's process is ideal to deal with this endogeneity. The approach they used seems to be purely data manipulation. 
+As @perron1989 said, "whichever view one adopts cannot be decided by data alone". It is reasonable to consider what happens in the real world and make decisions about how we should use all those relevant information. However, Perron believes the great crash and oil shock are exogenous to the data generating process which seems not realistic since political or other types of events are often related to the economic growth. @zivot2002 process takes care of this endogeneity. Although their methods are creative and useful, however, it seems to be purely data manipulation.
+Therefore, I think a better approach is a combination of @perron1989 and @zivot2002. 
+First one should study the data thoroughly, determine if there is possible breaks in the trend, how many breaks there are, if there are any big events happening near the skeptical breaks (war, financial crisis, etc). Then estimated locations of the breaks can be obtained by different methods (minimize/maximize the test statistic or maximize test power, etc). 
 
 #Reference  
 
