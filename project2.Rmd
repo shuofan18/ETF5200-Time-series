@@ -1,0 +1,38 @@
+---
+title: "ETF5200 Applied time series econometrics"
+subtitle: "Project 2"
+author: "Shuofan Zhang 27886913"
+bibliography: reference.bib
+date: ''
+fontsize: 12pt
+output:
+  pdf_document: default
+link-citations: yes
+delete_merged_file: yes
+biblio-style: apalike
+toc: yes
+---
+
+#Part I  
+
+
+##Question 1  
+
+
+```{r data, include=FALSE}
+setwd("/Users/stanza/documents/github/etf5200-time-series")
+library(tidyverse)
+library(forecast)
+library(readxl)
+library(lmtest)
+library(ggfortify)
+library(tseries)
+data <- read_excel("USdata2.xls", sheet = 1)
+```
+
+
+
+
+
+
+
