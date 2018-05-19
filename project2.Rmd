@@ -5,30 +5,56 @@ author: "Shuofan Zhang 27886913"
 bibliography: reference.bib
 date: ''
 fontsize: 12pt
-output:
-  pdf_document: default
+output: 
+  pdf_document: 
+    latex_engine: xelatex
 link-citations: yes
 delete_merged_file: yes
 biblio-style: apalike
 toc: yes
 ---
-
 #Part I  
 
+Personal capita consumption and income data are more likely to be inter-dependent dynamically, therefore vector autoregressive model (VAR) will be used to study their behavior in this project.
 
 ##Question 1  
 
+The model we are interested of is:
 
-```{r data, include=FALSE}
+$$Y_t=\nu + A_1 Y_{t-1} + A_2 Y_{t-2} + \epsilon_t$$
+where $$Y_t=\begin{pmatrix}
+  Consumption_t \\
+  Income_t
+ \end{pmatrix}$$
+
+First we want to estimate the intercept vector and the coefficient matrices for the VAR(2) model. The time plots of these two series are shown in figure 1. We can see the increasing time trend clearly.
+
+```{r data, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE, paged.print=FALSE}
 setwd("/Users/stanza/documents/github/etf5200-time-series")
-library(tidyverse)
-library(forecast)
 library(readxl)
-library(lmtest)
-library(ggfortify)
-library(tseries)
-data <- read_excel("USdata2.xls", sheet = 1)
+library(tidyverse)
+library(reshape2)
+tsdata <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c(1947,1), frequency = 4) %>% melt(id="time")
+ggplot(tsdata,aes(x=Var1,y=value,colour=Var2,group=Var2))+geom_line()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x=element_blank(),axis.text.y=element_blank())
 ```
+
+```{r var, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, results='asis'}
+library(tsDyn)
+library(mvtnorm)
+library(vars)
+library(knitr)
+biv_data <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252")
+bivar <- VAR(biv_data, p=2, type="both")
+Acm = Acoef(bivar)
+A1 <- Acm[[1]]
+A2 <- Acm[[2]]
+kable(A1, col.names = c("Consumption lag 1", "Income lag 1"))
+kable(A2)
+
+```
+
+
+
 
 
 
