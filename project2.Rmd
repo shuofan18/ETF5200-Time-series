@@ -13,21 +13,34 @@ delete_merged_file: yes
 biblio-style: apalike
 toc: yes
 ---
-#Part I  
 
-Personal capita consumption and income data are more likely to be inter-dependent dynamically, therefore vector autoregressive model (VAR) will be used to study their behavior in this project.
+# Part I
 
-##Question 1  
+Personal capita consumption and income data are more likely to be inter-dependent dynamically, therefore vector autoregressive model (VAR) will be used to study their behavior in this project. By looking at the data summary, we can see we have 251 observations, there are no missing values. The period of this data set is from the first quarter 1947 to the third quarter 2009.
 
-The model we are interested of is:
+## Question 1
 
-$$Y_t=\nu + A_1 Y_{t-1} + A_2 Y_{t-2} + \epsilon_t$$
-where $$Y_t=\begin{pmatrix}
+We start with checking the time plots of these two series, which are shown in figure 1. We can see the increasing time trend clearly. So since we want to fit a VAR(2) model, the interested model form is as below:
+
+$$Y_t=\Gamma\nu_t + A_1 Y_{t-1} + A_2 Y_{t-2} + \epsilon_t$$
+where 
+
+$$
+Y_t=\begin{pmatrix}
   Consumption_t \\
   Income_t
- \end{pmatrix}$$
-
-First we want to estimate the intercept vector and the coefficient matrices for the VAR(2) model. The time plots of these two series are shown in figure 1. We can see the increasing time trend clearly.
+ \end{pmatrix} \ \ 
+ \nu_t=\begin{pmatrix}
+  1 \\
+  time
+ \end{pmatrix} \ \ 
+ \epsilon_t=\begin{pmatrix}
+  \epsilon_{1t} \\
+  \epsilon_{2t}
+ \end{pmatrix}
+$$
+and $\Gamma$, $A_1$, $A_2$ are coefficient matrices.
+First we want to estimate the intercept vector ($\Gamma$) and the coefficient matrices ($A_1$ and $A_2$) for the VAR(2) model. 
 
 ```{r data, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE, paged.print=FALSE}
 setwd("/Users/stanza/documents/github/etf5200-time-series")
@@ -48,15 +61,38 @@ bivar <- VAR(biv_data, p=2, type="both")
 Acm = Acoef(bivar)
 A1 <- Acm[[1]]
 A2 <- Acm[[2]]
-kable(A1, col.names = c("Consumption lag 1", "Income lag 1"))
-kable(A2)
-
+kable(A1, col.names = c("Consumption lag 1", "Income lag 1"), caption = "Coefficient matrix A1")
+kable(A2, col.names = c("Consumption lag 2", "Income lag 2"), caption = "Coefficient matrix A2")
+nu <- matrix(c(0.099878535, 0.001649501, 0.211463502, 0.003618762), ncol=2, byrow = T)
+nu <- cbind(c("Consumption", "Income"), nu)
+kable(nu, col.names = c("","Intercept", "Trend"), caption = "Coefficient matrix Gamma")
 ```
 
+## Question 2
 
+AIC and HQ choose lag of order 4 while BIC chooses 3. Since AIC tends to over-estimate and BIC tends to under-estimate, HQ also chooses 4 lags, we will consider 4 lags as the correct order p in this case.
 
+```{r ic, echo=F, results='asis'}
+AIC <- VAR(biv_data, lag.max = 10, ic="AIC", type = "both") %>% .$p
+BIC <- VAR(biv_data, lag.max = 10, ic="SC", type = "both") %>% .$p
+HQ <- VAR(biv_data, lag.max = 10, ic="HQ", type = "both") %>% .$p
+IC <- c(AIC, BIC, HQ)
+kable(IC, col.names = "Lags chosen by Information Criteria", caption = "AIC and HQ choose lag of order 4 while BIC chooses 3.")
+```
 
+# Part II
 
+## The main ideas proposed
+
+## The main techniques used
+
+## The main data used
+
+## The main results obtained
+
+## The conclusion made
+
+## My own models and proposals
 
 
 
