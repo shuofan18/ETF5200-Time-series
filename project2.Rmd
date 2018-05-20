@@ -84,9 +84,24 @@ kable(IC, col.names = "Lags chosen by Information Criteria", caption = "AIC and 
 
 ## The main ideas proposed
 
+In 1981, Granger first introduced the idea of co-integration in @G1981 without giving any estimation methods. He believed that "the practice of data-mine should be brought out into the open" and this co-integration idea was "potentially very important". He was curious about if prices and wages were co-integrated or not, and he suggested appropriate investigation was needed to find out which pairs of economic variables are co-integrated. [@G1981] In 1983, Granger and Weiss did further study on this topic, some error-correction model forms and testing methods were discussed, three applications were conducted which including employees' income and national income; M3 and GNP; prices, wages and productivity. However the results in the three applications in that paper were all unsatisfactory indicating the model structure may not be appropraite. [@G1983]
+
+Therefore, in 1987, Engle and Granger wrote this paper [@E1987] to formally define the conception error-correcting models and co-integration. Properties and co-integration varibles and their representations, estimating and testing methods were also established.
+
 ## The main techniques used
 
 ## The main data used
+
+Four examples were given to show the performance of the tests introduced in this paper. 
+
+- The relationship between consumption and income in U.S.
+The U.S. quarterly real per capita consumption on nondurables and real per capita disposable income from 1947-I to 1981-II.
+
+- Monthly wages and prices in U.S.
+Logs of the consumer price index and production worker wage in manufacturing over the three decades of 50's, 60's, and 70's. For each of the decades there are 120 observations.
+
+- Short and long term interest rates in U.S.
+Monthly yields to maturity of 20 years treasury bonds (long term rate $R_t$) and the one month treasury bill rate (short rate $r_t$) from February, 1952 to December, 1982.
 
 ## The main results obtained
 
