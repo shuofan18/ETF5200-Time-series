@@ -16,7 +16,7 @@ toc: yes
 
 # Part I
 
-Personal capita consumption and income data are more likely to be inter-dependent dynamically, therefore vector autoregressive model (VAR) will be used to study their behavior in this project. By looking at the data summary, we can see we have 251 observations, there are no missing values. The period of this data set is from the first quarter 1947 to the third quarter 2009.
+Personal capita consumption and income data are more likely to be inter-dependent dynamically, therefore vector autoregressive model (VAR) will be used to study their behavior in this project. By looking at the data summary, we can see we have 251 observations, there are no missing values. The period of this data set is from the first quarter 1947 to the third quarter 2009. All data is in log form.
 
 ## Question 1
 
@@ -24,23 +24,20 @@ We start with checking the time plots of these two series, which are shown in fi
 
 $$\Delta Y_t=A_0 + A_1 \Delta Y_{t-1} + A_2 \Delta Y_{t-2} + \epsilon_t$$
 where 
-$$
-\Delta Y_t=\begin{pmatrix}
+$$\Delta Y_t=\begin{pmatrix}
   \Delta Consumption_t \\
   \Delta Income_t
  \end{pmatrix} \ \ 
- 
  \epsilon_t=\begin{pmatrix}
   \epsilon_{1t} \\
   \epsilon_{2t}
- \end{pmatrix}
-$$
+ \end{pmatrix}$$
+ 
 and $A_0$, $A_1$, $A_2$ are coefficient matrices.
-First we want to estimate the intercept vector ($A_0$) and the coefficient matrices ($A_1$ and $A_2$) for the VAR(2) model. 
 
-```{r fig1, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE, paged.print=FALSE}
-#setwd("/Users/stanza/documents/github/etf5200-time-series")
-setwd("\\\\ad.monash.edu/home/User079/szha0076/Desktop/ETF5200")
+```{r fig1, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE}
+setwd("/Users/stanza/documents/github/etf5200-time-series")
+#setwd("\\\\ad.monash.edu/home/User079/szha0076/Desktop/ETF5200")
 library(readxl)
 library(tidyverse)
 library(reshape2)
@@ -48,14 +45,15 @@ tsdata <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c
 ggplot(tsdata,aes(x=Var1,y=value,colour=Var2,group=Var2))+geom_line()+theme(axis.text.x=element_blank(),axis.text.y=element_blank())+xlab("time")+ylab("level series")+labs(colour = "Variables")
 ```
 
-```{r fig2, echo=FALSE, fig.cap="Time plots of first-differenced personal capita consumption and first-differenced income.", message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r fig2, echo=FALSE, fig.cap="Time plots of first-differenced personal capita consumption and first-differenced income.", message=FALSE, warning=FALSE}
 dfdata <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c(1947,1), frequency = 4)
 dfdata <- diff(dfdata) %>% melt(id="time")
 ggplot(dfdata,aes(x=Var1,y=value,colour=Var2,group=Var2))+geom_line()+theme(axis.text.x=element_blank(),axis.text.y=element_blank())+xlab("time")+ylab("First-differenced series")+labs(colour = "Variables")+facet_grid(. ~ Var2)
 ```
 
+First we want to estimate the intercept vector ($A_0$) and the coefficient matrices ($A_1$ and $A_2$) for the VAR(2) model.
 
-```{r var, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, results='asis'}
+```{r table1, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, results='asis'}
 library(tsDyn)
 library(mvtnorm)
 library(vars)
@@ -67,9 +65,15 @@ Acm = Acoef(model)
 A1 <- Acm[[1]]
 A2 <- Acm[[2]]
 kable(A1, col.names = c("Consumption lag 1", "Income lag 1"), caption = "Coefficient matrix A1")
-kable(A2, col.names = c("Consumption lag 2", "Income lag 2"), caption = "Coefficient matrix A2")
 A0 <- matrix(c(0.044288507, 0.001650857), ncol=1)
 A0 <- cbind(c("Consumption", "Income"), A0) %>% as.data.frame()
+```
+
+```{r table2, echo=F, results='asis'}
+kable(A2, col.names = c("Consumption lag 2", "Income lag 2"), caption = "Coefficient matrix A2")
+```
+
+```{r table3, echo=F, results='asis'}
 kable(A0, col.names = c("","Intercept"), caption = "Intercept matrix")
 ```
 
@@ -92,13 +96,15 @@ kable(IC, col.names = "Lags chosen by Information Criteria", caption = "AIC, HQ 
 
 In 1981, Granger first introduced the idea of co-integration in @G1981. He believed that "the practice of data-mine should be brought out into the open" and this co-integration idea was "potentially very important". He was curious about if prices and wages were co-integrated or not, and he suggested appropriate investigation was needed to find out which pairs of economic variables are co-integrated. [@G1981] In 1983, Granger and Weiss did further study on this topic, some error-correction model forms and testing methods were discussed, three applications were conducted which including employees' income and national income; M3 and GNP; prices, wages and productivity. However the results in the three applications in that paper were all unsatisfactory indicating the model structure may not be appropraite. [@G1983]
 
-Therefore, in 1987, Engle and Granger wrote this paper [@E1987] to formally define the conception error-correcting models and co-integration. Properties and co-integration varibles and their representations, estimating and testing methods were also established. It was proven that I(1) variables had a vector error correction representation if and only if they were cointegrated.
+Therefore, in 1987, Engle and Granger wrote this paper [@E1987] to formally define the conception error-correcting models and co-integration. A vector autoregression (VAR) in differenced variables will be misspecified if the variables are co-integrated. A vector autoregression (VAR) with level co-integrated data will have omitted important constraints. 
+Properties of co-integration varibles associated with several representations were discussed. Estimating and testing methods were also established. What's more, a two step estimator was proposed and proven to be as efficient as MLE based on a known value of co-integrating vector ($\alpha$).
 
 ## The main techniques used
 
+
 ## The main data used
 
-Four examples were given to show the performance of the tests introduced in this paper. 
+Four examples were given to show the performance of the tests introduced in this paper. Thus four types of data were involved.
 
 - The relationship between consumption and income in U.S.
 The U.S. quarterly real per capita consumption on nondurables and real per capita disposable income from 1947-I to 1981-II.
@@ -109,9 +115,27 @@ Logs of the consumer price index and production worker wage in manufacturing ove
 - Short and long term interest rates in U.S.
 Monthly yields to maturity of 20 years treasury bonds (long term rate $R_t$) and the one month treasury bill rate (short rate $r_t$) from February, 1952 to December, 1982.
 
+- Money supply and Output
+Four meansure of money: M1, M2, and M3, and L, total liquid assests. In each case, the sample period was 1959-I through 1981-II, quarterly. 
+
 ## The main results obtained
+"The paper presents several representations for co-integrated systems including an autoregression representation and an error-correction represenatation." 
+
+### Representations and restrictions
+
+
+
+### Estimation
+
+### Testing
+
+
 
 ## The conclusion made
+
+It was proven in this paper that I(1) variables had a vector error correction representation if and only if they were cointegrated.
+
+In the four examples mentioned above, "it is found that consumption and income are co-integrated, wages and prices are not, short and long interest rates are, and nominal GNP is not co-integrated with M1, M3, or total liquid assets, although it is possibly with M2." [@G1987]
 
 ## My own models and proposals
 
