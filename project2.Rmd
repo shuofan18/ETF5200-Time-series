@@ -20,52 +20,56 @@ Personal capita consumption and income data are more likely to be inter-dependen
 
 ## Question 1
 
-We start with checking the time plots of these two series, which are shown in figure 1. We can see the increasing time trend clearly. So since we want to fit a VAR(2) model, the interested model form is as below:
+We start with checking the time plots of these two series, which are shown in figure 1. We can see the increasing time trend clearly. The VAR model needs to be stationary. We first difference the series. The graph after first difference is shown in figure 2, we can see the first-differenced series are stationary. Hence the interested model form is as below:
 
-$$Y_t=\Gamma\nu_t + A_1 Y_{t-1} + A_2 Y_{t-2} + \epsilon_t$$
+$$\Delta Y_t=A_0 + A_1 \Delta Y_{t-1} + A_2 \Delta Y_{t-2} + \epsilon_t$$
 where 
-
 $$
-Y_t=\begin{pmatrix}
-  Consumption_t \\
-  Income_t
+\Delta Y_t=\begin{pmatrix}
+  \Delta Consumption_t \\
+  \Delta Income_t
  \end{pmatrix} \ \ 
- \nu_t=\begin{pmatrix}
-  1 \\
-  time
- \end{pmatrix} \ \ 
+ 
  \epsilon_t=\begin{pmatrix}
   \epsilon_{1t} \\
   \epsilon_{2t}
  \end{pmatrix}
 $$
-and $\Gamma$, $A_1$, $A_2$ are coefficient matrices.
-First we want to estimate the intercept vector ($\Gamma$) and the coefficient matrices ($A_1$ and $A_2$) for the VAR(2) model. 
+and $A_0$, $A_1$, $A_2$ are coefficient matrices.
+First we want to estimate the intercept vector ($A_0$) and the coefficient matrices ($A_1$ and $A_2$) for the VAR(2) model. 
 
-```{r data, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r fig1, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE, paged.print=FALSE}
 setwd("/Users/stanza/documents/github/etf5200-time-series")
 library(readxl)
 library(tidyverse)
 library(reshape2)
 tsdata <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c(1947,1), frequency = 4) %>% melt(id="time")
-ggplot(tsdata,aes(x=Var1,y=value,colour=Var2,group=Var2))+geom_line()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x=element_blank(),axis.text.y=element_blank())
+ggplot(tsdata,aes(x=Var1,y=value,colour=Var2,group=Var2))+geom_line()+theme(axis.text.x=element_blank(),axis.text.y=element_blank())+xlab("time")+ylab("level series")+labs(colour = "Variables")
 ```
+
+```{r fig2, echo=FALSE, fig.cap="Time plots of first-differenced personal capita consumption and first-differenced income.", message=FALSE, warning=FALSE, paged.print=FALSE}
+dfdata <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c(1947,1), frequency = 4)
+dfdata <- diff(dfdata) %>% melt(id="time")
+ggplot(dfdata,aes(x=Var1,y=value,colour=Var2,group=Var2))+geom_line()+theme(axis.text.x=element_blank(),axis.text.y=element_blank())+xlab("time")+ylab("First-differenced series")+labs(colour = "Variables")+facet_grid(. ~ Var2)
+```
+
 
 ```{r var, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, results='asis'}
 library(tsDyn)
 library(mvtnorm)
 library(vars)
 library(knitr)
-biv_data <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252")
-bivar <- VAR(biv_data, p=2, type="both")
-Acm = Acoef(bivar)
+biv <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c(1947,1), frequency = 4)
+dfbiv <- diff(biv) 
+model <- VAR(dfbiv, p=2, type="const")
+Acm = Acoef(model)
 A1 <- Acm[[1]]
 A2 <- Acm[[2]]
 kable(A1, col.names = c("Consumption lag 1", "Income lag 1"), caption = "Coefficient matrix A1")
 kable(A2, col.names = c("Consumption lag 2", "Income lag 2"), caption = "Coefficient matrix A2")
-nu <- matrix(c(0.099878535, 0.001649501, 0.211463502, 0.003618762), ncol=2, byrow = T)
-nu <- cbind(c("Consumption", "Income"), nu)
-kable(nu, col.names = c("","Intercept", "Trend"), caption = "Coefficient matrix Gamma")
+A0 <- matrix(c(0.044288507, 0.001650857), ncol=1)
+A0 <- cbind(c("Consumption", "Income"), A0)
+kable(A0, col.names = "Intercept", caption = "Intercept matrix")
 ```
 
 ## Question 2
