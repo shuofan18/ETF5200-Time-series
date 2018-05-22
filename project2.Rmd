@@ -39,7 +39,8 @@ and $A_0$, $A_1$, $A_2$ are coefficient matrices.
 First we want to estimate the intercept vector ($A_0$) and the coefficient matrices ($A_1$ and $A_2$) for the VAR(2) model. 
 
 ```{r fig1, echo=FALSE, fig.cap="Time plots of personal capita consumption and income shows clear trend.", message=FALSE, warning=FALSE, paged.print=FALSE}
-setwd("/Users/stanza/documents/github/etf5200-time-series")
+#setwd("/Users/stanza/documents/github/etf5200-time-series")
+setwd("\\\\ad.monash.edu/home/User079/szha0076/Desktop/ETF5200")
 library(readxl)
 library(tidyverse)
 library(reshape2)
@@ -68,29 +69,30 @@ A2 <- Acm[[2]]
 kable(A1, col.names = c("Consumption lag 1", "Income lag 1"), caption = "Coefficient matrix A1")
 kable(A2, col.names = c("Consumption lag 2", "Income lag 2"), caption = "Coefficient matrix A2")
 A0 <- matrix(c(0.044288507, 0.001650857), ncol=1)
-A0 <- cbind(c("Consumption", "Income"), A0)
-kable(A0, col.names = "Intercept", caption = "Intercept matrix")
+A0 <- cbind(c("Consumption", "Income"), A0) %>% as.data.frame()
+kable(A0, col.names = c("","Intercept"), caption = "Intercept matrix")
 ```
 
 ## Question 2
 
-AIC and HQ choose lag of order 4 while BIC chooses 3. Since AIC tends to over-estimate and BIC tends to under-estimate, HQ also chooses 4 lags, we will consider 4 lags as the correct order p in this case.
+AIC, HQ and FPE choose lag of order 3 while BIC chooses 1. Since BIC tends to under-estimate, All other three IC chooses 3 lags, we will consider 3 lags for the first-differenced data as the correct order p in this case.
 
 ```{r ic, echo=F, results='asis'}
-AIC <- VAR(biv_data, lag.max = 10, ic="AIC", type = "both") %>% .$p
-BIC <- VAR(biv_data, lag.max = 10, ic="SC", type = "both") %>% .$p
-HQ <- VAR(biv_data, lag.max = 10, ic="HQ", type = "both") %>% .$p
-IC <- c(AIC, BIC, HQ)
-kable(IC, col.names = "Lags chosen by Information Criteria", caption = "AIC and HQ choose lag of order 4 while BIC chooses 3.")
+AIC <- VAR(dfbiv, lag.max = 10, ic="AIC", type = "const") %>% .$p
+BIC <- VAR(dfbiv, lag.max = 10, ic="SC", type = "const") %>% .$p
+HQ <- VAR(dfbiv, lag.max = 10, ic="HQ", type = "const") %>% .$p
+FPE <- VAR(dfbiv, lag.max = 10, ic="FPE", type = "const") %>% .$p
+IC <- c(AIC, BIC, HQ, FPE)
+kable(IC, col.names = "Lags chosen by Information Criteria", caption = "AIC, HQ and FPE choose lag of order 3 while BIC chooses 1.")
 ```
 
 # Part II
 
 ## The main ideas proposed
 
-In 1981, Granger first introduced the idea of co-integration in @G1981 without giving any estimation methods. He believed that "the practice of data-mine should be brought out into the open" and this co-integration idea was "potentially very important". He was curious about if prices and wages were co-integrated or not, and he suggested appropriate investigation was needed to find out which pairs of economic variables are co-integrated. [@G1981] In 1983, Granger and Weiss did further study on this topic, some error-correction model forms and testing methods were discussed, three applications were conducted which including employees' income and national income; M3 and GNP; prices, wages and productivity. However the results in the three applications in that paper were all unsatisfactory indicating the model structure may not be appropraite. [@G1983]
+In 1981, Granger first introduced the idea of co-integration in @G1981. He believed that "the practice of data-mine should be brought out into the open" and this co-integration idea was "potentially very important". He was curious about if prices and wages were co-integrated or not, and he suggested appropriate investigation was needed to find out which pairs of economic variables are co-integrated. [@G1981] In 1983, Granger and Weiss did further study on this topic, some error-correction model forms and testing methods were discussed, three applications were conducted which including employees' income and national income; M3 and GNP; prices, wages and productivity. However the results in the three applications in that paper were all unsatisfactory indicating the model structure may not be appropraite. [@G1983]
 
-Therefore, in 1987, Engle and Granger wrote this paper [@E1987] to formally define the conception error-correcting models and co-integration. Properties and co-integration varibles and their representations, estimating and testing methods were also established.
+Therefore, in 1987, Engle and Granger wrote this paper [@E1987] to formally define the conception error-correcting models and co-integration. Properties and co-integration varibles and their representations, estimating and testing methods were also established. It was proven that I(1) variables had a vector error correction representation if and only if they were cointegrated.
 
 ## The main techniques used
 
