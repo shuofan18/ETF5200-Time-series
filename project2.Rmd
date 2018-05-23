@@ -176,7 +176,7 @@ Based on this paper and what we have learned from our ETF5200 subject, the appro
 
 - Estimating the VECM.
 
-We will give an example using the data set in part I to illustrate the procedures listed above. Firstly, we use VAR to determine lags, three of IC chooses lags of 4, while only BIC chooses 2, so we will use 4 lags. Secondly we use Johansen test to determine the rank. The null hypothesis $r=0$ can be rejected at 10% significance level, while $r\leq1$ cannot be rejected. We will take $r=1$ as true in this case. 
+We will give an example using the data set in part I to illustrate the procedures listed above. Firstly, we use VAR to determine lags, three of IC chooses lags of 4, while only BIC chooses 2, so we will use 4 lags. Secondly we use Johansen test to determine the rank. The test statistics of $r=0$ is 23.57 while $r\leq1$ is 7.24. The null hypothesis $r=0$ can be rejected at 10% significance level, while $r\leq1$ cannot be rejected. We will take $r=1$ as true in this case. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, results='asis'}
 mm <- read_excel("USdata2.xls", sheet = 1, range = "A1:B252") %>% ts(start=c(1947,1), frequency = 4)
@@ -188,7 +188,6 @@ IC2 <- c(A, B, H, FP)
 kable(IC2, col.names = "Lags chosen by Information Criteria", caption = "VAR with level data. AIC, HQ and FPE choose lag of order 4 while BIC chooses 2.")
 
 jotest <- ca.jo(mm, type = "trace", K=4, ecdet = "trend")
-jotest
 mmodel <- VECM(mm, lag=3, r=1)
 coeA <- mmodel %>% coefA()
 coeB <- mmodel %>% coefB()
